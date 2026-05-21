@@ -40,6 +40,7 @@
         #tabelaSimulacao th, #tabelaSimulacao td { border: 1px solid #ccc; padding: 8px 4px; text-align: center; }
         .tela-carregamento { position: fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(135deg, #00BFA5, #00897B); display: flex; align-items: center; justify-content: center; color: white; z-index: 9999; transition: opacity 0.5s; flex-direction: column; }
         .btn-limpar-hoje { background: #D32F2F; font-size: 0.8em; padding: 8px; width: auto; margin-left: 4px; }
+        .copy-btn { background: #2196F3; margin-top: 10px; }
         @media(max-width:380px) { #valorDisplay { font-size: 3.2em; } }
     </style>
 </head>
@@ -61,9 +62,10 @@
     </div>
 
     <div class="google-maps-distancia" id="quadroGoogleMaps" style="display:none;">
-        <div>🗺️ Distância Google Maps</div>
-        <div id="distanciaGoogleMaps">-- km</div>
-        <div id="statusGoogleMaps"></div>
+        <div>🗺️ Rota para:</div>
+        <div id="destinoGoogleMaps" style="font-weight:bold; font-size:0.9em;">--</div>
+        <div>📏 Distância: <span id="distanciaGoogleMaps">-- km</span></div>
+        <div id="statusGoogleMaps" style="font-size:0.8em;"></div>
     </div>
 
     <div class="box">
@@ -117,7 +119,8 @@
 
     <div id="comprovante">
         <h3>✅ COMPROVANTE DE CORRIDA</h3>
-        <div id="dadosComprovante"></div>
+        <div id="dadosComprovante" style="white-space: pre-line; font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 8px; margin: 10px 0;"></div>
+        <button class="btn-pix copy-btn" onclick="copiarComprovante()">📋 Copiar Comprovante</button>
         <button class="fechar-btn" onclick="fecharJanela('comprovante')">❌ Fechar</button>
     </div>
 
@@ -125,9 +128,9 @@
         <h3>📊 TABELA DE TARIFAS</h3>
         <table style="width:100%; border-collapse: collapse;">
             <tr><th>TARIFA</th><th>HORÁRIO</th><th>BANDEIRADA</th><th>VALOR/KM</th><th>MÍNIMO</th></tr>
-            <tr><td>☀️ Dia</td><td>06h às 20h (dias úteis)</td><td id="tabDiaBandeira">R$ 2,50</td><td id="tabDiaKm">R$ 1,15</td><td id="tabDiaMinimo">R$ 6,00</td></tr>
-            <tr><td>🌙 Noite</td><td>20h às 06h (dias úteis)</td><td id="tabNoiteBandeira">R$ 3,00</td><td id="tabNoiteKm">R$ 1,30</td><td id="tabNoiteMinimo">R$ 6,00</td></tr>
-            <tr><td>🔥 Fim de Semana/Feriado</td><td>Sábado, Domingo, Feriados (24h)</td><td id="tabFimBandeira">R$ 3,00</td><td id="tabFimKm">R$ 1,30</td><td id="tabFimMinimo">R$ 6,00</td></tr>
+            <tr class="tarifa-verde"><td>☀️ Dia</th><td>06h às 20h (dias úteis)</th><td><td id="tabDiaBandeira">R$ 2,50</td><td><td id="tabDiaKm">R$ 1,15</td><td><td id="tabDiaMinimo">R$ 6,00</td></tr>
+            <tr class="tarifa-amarela"><td>🌙 Noite</th><td>20h às 06h (dias úteis)</th><td><td id="tabNoiteBandeira">R$ 3,00</td><td><td id="tabNoiteKm">R$ 1,30</td><td><td id="tabNoiteMinimo">R$ 6,00</td></tr>
+            <tr class="tarifa-vermelha"><td>🔥 Fim de Semana/Feriado</th><td>Sábado, Domingo, Feriados (24h)</th><td><td id="tabFimBandeira">R$ 3,00</td><td><td id="tabFimKm">R$ 1,30</td><td><td id="tabFimMinimo">R$ 6,00</td></tr>
         </table>
         <button class="fechar-btn" onclick="fecharJanela('tabelaTarifas')">❌ Fechar</button>
     </div>
@@ -172,7 +175,10 @@
             <option value="moto">🏍️ Moto</option>
             <option value="carro">🚖 Carro</option>
         </select>
-        <button class="btn-pix" onclick="salvarDadosMotorista()">💾 Salvar</button>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn-pix" onclick="salvarDadosMotorista()" style="flex:1;">💾 Salvar</button>
+            <button class="btn-ajuste" onclick="limparDadosMotorista()" style="background:#FF5722; flex:1;">🗑️ Limpar Dados</button>
+        </div>
         <button class="fechar-btn" onclick="fecharJanela('telaDadosMotorista')">❌ Fechar</button>
     </div>
 </div>
@@ -220,12 +226,25 @@
         fecharJanela('telaDadosMotorista');
     }
 
+    function limparDadosMotorista() {
+        if (confirm('⚠️ Tem certeza? Isso vai apagar TODOS os seus dados cadastrados (Pix, nome, cidade, WhatsApp e tipo de veículo).')) {
+            localStorage.removeItem('pixKeyMotorista');
+            localStorage.removeItem('nomeMotorista');
+            localStorage.removeItem('cidadeMotorista');
+            localStorage.removeItem('whatsApp');
+            localStorage.removeItem('tipoVeiculo');
+            carregarDadosMotorista();
+            alert('✅ Dados removidos. Cadastre novamente quando quiser.');
+            fecharJanela('telaDadosMotorista');
+        }
+    }
+
     function abrirTelaDadosMotorista() {
         carregarDadosMotorista();
         document.getElementById('telaDadosMotorista').style.display = 'block';
     }
 
-    // ---------- TARIFAS (3 períodos) com valores padrão genéricos (o motorista ajustará) ----------
+    // ---------- TARIFAS (3 períodos) ----------
     const tarifas = {
         dia: { bandeira: 2.50, km: 1.15, minimo: 6.00 },
         noite: { bandeira: 3.00, km: 1.30, minimo: 6.00 },
@@ -383,6 +402,49 @@
         document.getElementById('tempo').innerText = '00:00:00';
     }
 
+    // ---------- COMPROVANTE PROFISSIONAL (MELHORADO) ----------
+    let ultimoComprovanteTexto = "";
+
+    function gerarComprovanteProfissional() {
+        const origem = document.getElementById('campoOrigem').value || 'Não informado';
+        const destino = document.getElementById('campoDestino').value || 'Não informado';
+        const valor = document.getElementById('valorDisplay').innerText;
+        const tempo = document.getElementById('tempo').innerText;
+        const distancia = document.getElementById('distancia').innerText;
+        const tarifaTexto = document.getElementById('tipoTarifa').innerHTML;
+        const veiculo = tipoVeiculo === 'moto' ? '🏍️ Moto' : '🚖 Carro';
+        const dataHora = new Date().toLocaleString('pt-BR');
+        
+        let comprovante = `✅ *COMPROVANTE DE CORRIDA*\n\n`;
+        comprovante += `🚕 *${nomeMotorista || 'Motorista'}* (${veiculo})\n`;
+        comprovante += `📅 Data: ${dataHora}\n`;
+        comprovante += `📍 Origem: ${origem}\n`;
+        comprovante += `🏁 Destino: ${destino}\n`;
+        comprovante += `📏 Distância: ${distancia}\n`;
+        comprovante += `⏱️ Tempo: ${tempo}\n`;
+        comprovante += `💰 Valor: ${valor}\n`;
+        comprovante += `📊 Tarifa: ${tarifaTexto}\n`;
+        comprovante += `💳 Pagamento: PIX na hora (QR Code disponível)\n`;
+        comprovante += `🔒 *Motorista confiável* - Agradecemos a preferência! 🚀`;
+        
+        ultimoComprovanteTexto = comprovante;
+        // Exibir no modal
+        document.getElementById('dadosComprovante').innerHTML = comprovante.replace(/\n/g, '<br>');
+        document.getElementById('comprovante').style.display = 'block';
+    }
+
+    function copiarComprovante() {
+        if (!ultimoComprovanteTexto) {
+            alert('Nenhum comprovante disponível.');
+            return;
+        }
+        navigator.clipboard.writeText(ultimoComprovanteTexto).then(() => {
+            alert('✅ Comprovante copiado! Cole no WhatsApp do passageiro.');
+        }).catch(() => {
+            alert('❌ Erro ao copiar. Copie manualmente.');
+        });
+    }
+
     function parar() {
         if (!corridaAtiva) return;
         corridaAtiva = false;
@@ -407,7 +469,8 @@
         let compHtml = '<table class="comparacao-tabela">';
         compHtml += `<tr><td>📏 Google Maps</td><td>${distanciaGoogleMapsManual ? distanciaGoogleMapsManual.toFixed(2)+' km' : 'não informado'}</td><td>${valorGoogle ? 'R$ '+valorGoogle.toFixed(2).replace('.',',') : '---'}</td></tr>`;
         compHtml += `<tr><td>📡 Taxímetro (GPS)</td><td>${finalGPS.toFixed(2)} km</td><td>R$ ${valorGPS.toFixed(2).replace('.',',')}</td></tr>`;
-        compHtml += `<tr style="background:#E8F5E9; font-weight:bold;"><td>✅ Cobrado no PIX</td><td>${final.toFixed(2)} km</td><td>R$ ${valorFinal.toFixed(2).replace('.',',')}</td></tr></table>`;
+        compHtml += `<tr style="background:#E8F5E9; font-weight:bold;"><td>✅ Cobrado no PIX</td><td>${final.toFixed(2)} km</td><td>R$ ${valorFinal.toFixed(2).replace('.',',')}</td></tr>`;
+        compHtml += '</table>';
         if (valorGoogle !== null) {
             const economia = Math.abs(valorFinal - valorGoogle);
             if (valorFinal < valorGoogle) compHtml += `<div class="destaque-economia">💰 Passageiro economizou R$ ${economia.toFixed(2).replace('.',',')}</div>`;
@@ -420,23 +483,11 @@
         window.ultimoGPS = finalGPS;
         window.ultimoGoogle = distanciaGoogleMapsManual;
         window.usouGoogle = usouGoogle;
-        gerarComprovante();
+        
+        // Usar comprovante profissional
+        gerarComprovanteProfissional();
         salvarHistorico();
         document.getElementById('btnPix').disabled = false;
-    }
-
-    function gerarComprovante() {
-        const origem = document.getElementById('campoOrigem').value || 'Não informado';
-        const destino = document.getElementById('campoDestino').value || 'Não informado';
-        const valor = document.getElementById('valorDisplay').innerText;
-        const tempo = document.getElementById('tempo').innerText;
-        let html = `<p>📍 Origem: ${origem}</p><p>🏁 Destino: ${destino}</p>`;
-        html += `<p>📏 Distância GPS: ${window.ultimoGPS?.toFixed(2) || '0.00'} km</p>`;
-        if (window.ultimoGoogle) html += `<p>🗺️ Distância Google Maps: ${window.ultimoGoogle.toFixed(2)} km</p><p>✅ Cobrado a MENOR distância</p>`;
-        else html += `<p>✅ Cobrado com base no GPS</p>`;
-        html += `<p>⏱️ Tempo: ${tempo}</p><p><strong>💰 TOTAL: ${valor}</strong></p>`;
-        document.getElementById('dadosComprovante').innerHTML = html;
-        document.getElementById('comprovante').style.display = 'block';
     }
 
     // ---------- HISTÓRICO ----------
@@ -624,9 +675,10 @@
     async function atualizarDistanciaGoogleMaps() {
         const o=document.getElementById('campoOrigem').value.trim(), d=document.getElementById('campoDestino').value.trim();
         const manual=parseFloat(document.getElementById('campoDistanciaManual').value);
-        const quadro=document.getElementById('quadroGoogleMaps'), distEl=document.getElementById('distanciaGoogleMaps');
+        const quadro=document.getElementById('quadroGoogleMaps'), distEl=document.getElementById('distanciaGoogleMaps'), destinoEl = document.getElementById('destinoGoogleMaps');
         if(!o||!d){ quadro.style.display='none'; return; }
         quadro.style.display='block';
+        destinoEl.innerText = d;
         if(!isNaN(manual)&&manual>0){ distEl.innerText=`${manual.toFixed(2)} km`; return; }
         distEl.innerText='-- km';
         const origC=await geocodificar(o), destC=await geocodificar(d);
