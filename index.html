@@ -128,9 +128,9 @@
         <h3>📊 TABELA DE TARIFAS</h3>
         <table style="width:100%; border-collapse: collapse;">
             <tr><th>TARIFA</th><th>HORÁRIO</th><th>BANDEIRADA</th><th>VALOR/KM</th><th>MÍNIMO</th></tr>
-            <tr class="tarifa-verde"><td>☀️ Dia</th><td>06h às 20h (dias úteis)</th><td><td id="tabDiaBandeira">R$ 2,50</td><td><td id="tabDiaKm">R$ 1,15</td><td><td id="tabDiaMinimo">R$ 6,00</td></tr>
-            <tr class="tarifa-amarela"><td>🌙 Noite</th><td>20h às 06h (dias úteis)</th><td><td id="tabNoiteBandeira">R$ 3,00</td><td><td id="tabNoiteKm">R$ 1,30</td><td><td id="tabNoiteMinimo">R$ 6,00</td></tr>
-            <tr class="tarifa-vermelha"><td>🔥 Fim de Semana/Feriado</th><td>Sábado, Domingo, Feriados (24h)</th><td><td id="tabFimBandeira">R$ 3,00</td><td><td id="tabFimKm">R$ 1,30</td><td><td id="tabFimMinimo">R$ 6,00</td></tr>
+            <tr class="tarifa-verde"><td>☀️ Dia</th><td>06h às 20h (dias úteis)</th><td><td id="tabDiaBandeira">R$ 2,50</td><td id="tabDiaKm">R$ 1,15</td><td id="tabDiaMinimo">R$ 6,00</td></tr>
+            <tr class="tarifa-amarela"><td>🌙 Noite</th><td>20h às 06h (dias úteis)</th><td><td id="tabNoiteBandeira">R$ 3,00</td><td id="tabNoiteKm">R$ 1,30</td><td id="tabNoiteMinimo">R$ 6,00</td></tr>
+            <tr class="tarifa-vermelha"><td>🔥 Fim de Semana/Feriado</th><td>Sábado, Domingo, Feriados (24h)</th><td><td id="tabFimBandeira">R$ 3,00</td><td id="tabFimKm">R$ 1,30</td><td id="tabFimMinimo">R$ 6,00</td></tr>
         </table>
         <button class="fechar-btn" onclick="fecharJanela('tabelaTarifas')">❌ Fechar</button>
     </div>
@@ -175,6 +175,13 @@
             <option value="moto">🏍️ Moto</option>
             <option value="carro">🚖 Carro</option>
         </select>
+        <!-- NOVOS CAMPOS: IDENTIFICAÇÃO DO VEÍCULO -->
+        <label>🏍️ Marca/Modelo do veículo:</label>
+        <input type="text" id="inputModelo" placeholder="Ex: Fan 125, Civic, Corolla">
+        <label>🎨 Cor do veículo:</label>
+        <input type="text" id="inputCor" placeholder="Ex: Preta, Branca, Prata">
+        <label>🔢 Placa do veículo:</label>
+        <input type="text" id="inputPlaca" placeholder="Ex: QRP5G89">
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn-pix" onclick="salvarDadosMotorista()" style="flex:1;">💾 Salvar</button>
             <button class="btn-ajuste" onclick="limparDadosMotorista()" style="background:#FF5722; flex:1;">🗑️ Limpar Dados</button>
@@ -184,8 +191,9 @@
 </div>
 
 <script>
-    // ---------- DADOS DO MOTORISTA (PIX, WhatsApp, Veículo) ----------
+    // ---------- DADOS DO MOTORISTA (PIX, WhatsApp, Veículo, Modelo, Cor, Placa) ----------
     let pixKey = "", nomeMotorista = "", cidadeMotorista = "", whatsApp = "", tipoVeiculo = "moto";
+    let modelo = "", cor = "", placa = "";
 
     function carregarDadosMotorista() {
         pixKey = localStorage.getItem('pixKeyMotorista') || "";
@@ -193,12 +201,18 @@
         cidadeMotorista = localStorage.getItem('cidadeMotorista') || "SUA CIDADE";
         whatsApp = localStorage.getItem('whatsApp') || "";
         tipoVeiculo = localStorage.getItem('tipoVeiculo') || "moto";
+        modelo = localStorage.getItem('modeloVeiculo') || "";
+        cor = localStorage.getItem('corVeiculo') || "";
+        placa = localStorage.getItem('placaVeiculo') || "";
         if (document.getElementById('inputPixKey')) {
             document.getElementById('inputPixKey').value = pixKey;
             document.getElementById('inputNomeMotorista').value = nomeMotorista;
             document.getElementById('inputCidadeMotorista').value = cidadeMotorista;
             document.getElementById('inputWhatsApp').value = whatsApp;
             document.getElementById('inputTipoVeiculo').value = tipoVeiculo;
+            document.getElementById('inputModelo').value = modelo;
+            document.getElementById('inputCor').value = cor;
+            document.getElementById('inputPlaca').value = placa;
         }
         // Atualizar título e ícone de carregamento conforme o tipo de veículo
         const titulo = document.getElementById('tituloApp');
@@ -221,18 +235,24 @@
         localStorage.setItem('cidadeMotorista', document.getElementById('inputCidadeMotorista').value.trim());
         localStorage.setItem('whatsApp', document.getElementById('inputWhatsApp').value.trim().replace(/\D/g, ''));
         localStorage.setItem('tipoVeiculo', document.getElementById('inputTipoVeiculo').value);
+        localStorage.setItem('modeloVeiculo', document.getElementById('inputModelo').value.trim());
+        localStorage.setItem('corVeiculo', document.getElementById('inputCor').value.trim());
+        localStorage.setItem('placaVeiculo', document.getElementById('inputPlaca').value.trim().toUpperCase());
         carregarDadosMotorista();
         alert('✅ Dados salvos com sucesso!');
         fecharJanela('telaDadosMotorista');
     }
 
     function limparDadosMotorista() {
-        if (confirm('⚠️ Tem certeza? Isso vai apagar TODOS os seus dados cadastrados (Pix, nome, cidade, WhatsApp e tipo de veículo).')) {
+        if (confirm('⚠️ Tem certeza? Isso vai apagar TODOS os seus dados cadastrados (Pix, nome, cidade, WhatsApp, tipo de veículo, modelo, cor, placa).')) {
             localStorage.removeItem('pixKeyMotorista');
             localStorage.removeItem('nomeMotorista');
             localStorage.removeItem('cidadeMotorista');
             localStorage.removeItem('whatsApp');
             localStorage.removeItem('tipoVeiculo');
+            localStorage.removeItem('modeloVeiculo');
+            localStorage.removeItem('corVeiculo');
+            localStorage.removeItem('placaVeiculo');
             carregarDadosMotorista();
             alert('✅ Dados removidos. Cadastre novamente quando quiser.');
             fecharJanela('telaDadosMotorista');
@@ -402,7 +422,7 @@
         document.getElementById('tempo').innerText = '00:00:00';
     }
 
-    // ---------- COMPROVANTE PROFISSIONAL (MELHORADO) ----------
+    // ---------- COMPROVANTE PROFISSIONAL (COM DADOS DO VEÍCULO) ----------
     let ultimoComprovanteTexto = "";
 
     function gerarComprovanteProfissional() {
@@ -417,6 +437,9 @@
         
         let comprovante = `✅ *COMPROVANTE DE CORRIDA*\n\n`;
         comprovante += `🚕 *${nomeMotorista || 'Motorista'}* (${veiculo})\n`;
+        if (modelo) comprovante += `🚲 Veículo: ${modelo}\n`;
+        if (cor) comprovante += `🎨 Cor: ${cor}\n`;
+        if (placa) comprovante += `🔢 Placa: ${placa}\n`;
         comprovante += `📅 Data: ${dataHora}\n`;
         comprovante += `📍 Origem: ${origem}\n`;
         comprovante += `🏁 Destino: ${destino}\n`;
@@ -484,7 +507,6 @@
         window.ultimoGoogle = distanciaGoogleMapsManual;
         window.usouGoogle = usouGoogle;
         
-        // Usar comprovante profissional
         gerarComprovanteProfissional();
         salvarHistorico();
         document.getElementById('btnPix').disabled = false;
@@ -529,7 +551,6 @@
     function limparCorridasHoje() {
         const hoje = new Date().toLocaleDateString('pt-BR');
         const antigas = historicoCorridas.filter(c => !c.data.startsWith(hoje));
-        if (antigas.length === historicoCorridas.length) { alert('Não há corridas hoje.'); return; }
         if (confirm('Limpar corridas de hoje?')) {
             historicoCorridas = antigas;
             localStorage.setItem('historicoCorridas', JSON.stringify(historicoCorridas));
